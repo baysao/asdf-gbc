@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+echo -n "bin redis/bin beanstalkd/bin python_env/gbc/bin"
