@@ -86,7 +86,7 @@ _env() {
 	echo -e "[\033[32mINSTALL\033[0m] virtualenv"
 	cd $BUILD_DIR
 
-	#sudo apt install -y luajit libluajit-5.1-dev
+	#	sudo apt install -y luajit libluajit-5.1-dev
 	#rm ~/.asdf/shims/python*
 
 	tar xfz $SRC_DIR/build/install/virtualenv-$VIRTUALENV_VER.tar.gz
