@@ -9,6 +9,7 @@ VIRTUALENV_VER=16.7.5
 SUPERVISOR_VER=4.0.2
 SUPERVISOR_VER=4.0.4
 SUPERVISOR_VER=4.1.0
+SUPERVISOR_VER=4.2.4
 
 REDIS_VER=5.0.5
 
@@ -85,6 +86,9 @@ _env() {
 	echo -e "[\033[32mINSTALL\033[0m] virtualenv"
 	cd $BUILD_DIR
 
+	#sudo apt install -y luajit libluajit-5.1-dev
+	#rm ~/.asdf/shims/python*
+
 	tar xfz $SRC_DIR/build/install/virtualenv-$VIRTUALENV_VER.tar.gz
 	PYTHON_ENV_DIR=$DEST_BIN_DIR/python_env
 	rm -fr $PYTHON_ENV_DIR
@@ -93,7 +97,9 @@ _env() {
 	python virtualenv.py --no-download gbc
 	cd gbc
 	source bin/activate
-	curl https://bootstrap.pypa.io/get-pip.py | python
+
+	curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | python
+	#	curl https://bootstrap.pypa.io/get-pip.py | python
 	echo ""
 	echo -e "[\033[32mINSTALL\033[0m] supervisor"
 	cd $BUILD_DIR
@@ -107,54 +113,55 @@ _lualib() {
 	# install luasocket
 	echo ""
 	echo -e "[\033[32mINSTALL\033[0m] luasocket"
-
 	cd $BUILD_DIR
 	tar zxf $SRC_DIR/build/install/luasocket-$LUASOCKET_VER.tar.gz
 	cd luasocket-$LUASOCKET_VER
-	$SED_BIN "s#LUAPREFIX_linux?=/usr/local#LUAPREFIX_linux?=$DEST_BIN_DIR/openresty/luajit#g" src/makefile
-	$SED_BIN "s#LUAINC_linux_base?=/usr/include#LUAINC_linux_base?=$DEST_BIN_DIR/openresty/luajit/include#g" src/makefile
-	$SED_BIN "s#\$(LUAINC_linux_base)/lua/\$(LUAV)#\$(LUAINC_linux_base)/luajit-2.1#g" src/makefile
+	# $SED_BIN "s#LUAPREFIX_linux?=/usr/local#LUAPREFIX_linux?=$DEST_BIN_DIR/openresty/luajit#g" src/makefile
+	# $SED_BIN "s#LUAINC_linux_base?=/usr/include#LUAINC_linux_base?=$DEST_BIN_DIR/openresty/luajit/include#g" src/makefile
+	# $SED_BIN "s#\$(LUAINC_linux_base)/lua/\$(LUAV)#\$(LUAINC_linux_base)/luajit-2.1#g" src/makefile
+	mkdir -p $DEST_BIN_DIR/openresty/luajit/lib/lua/5.1/socket/
 	make -j$(nproc) && make install-unix
+
 	cp -f src/serial.so src/unix.so $DEST_BIN_DIR/openresty/luajit/lib/lua/5.1/socket/.
 
 	# install luabson
-	# echo ""
-	# echo -e "[\033[32mINSTALL\033[0m] luabson"
+	echo ""
+	echo -e "[\033[32mINSTALL\033[0m] luabson"
 
-	# cd $BUILD_DIR
-	# tar zxf luabson-$LUABSON_VER.tar.gz
-	# cd lua-bson
-	# if [ $OSTYPE == "MACOS" ]; then
-	#     $SED_BIN "s#-I/usr/local/include -L/usr/local/bin -llua53#-I$DEST_BIN_DIR/openresty/luajit/include/luajit-2.1 -L$DEST_BIN_DIR/openresty/luajit/lib -lluajit-5.1#g" Makefile
-	# else
-	#     $SED_BIN "s#-I/usr/local/include -L/usr/local/bin -llua53#-I$DEST_BIN_DIR/openresty/luajit/include/luajit-2.1 -L$DEST_BIN_DIR/openresty/luajit/lib#g" Makefile
-	# fi
-	# make linux
+	cd $BUILD_DIR
+	tar zxf luabson-$LUABSON_VER.tar.gz
+	cd lua-bson
+	if [ $OSTYPE == "MACOS" ]; then
+		$SED_BIN "s#-I/usr/local/include -L/usr/local/bin -llua53#-I$DEST_BIN_DIR/openresty/luajit/include/luajit-2.1 -L$DEST_BIN_DIR/openresty/luajit/lib -lluajit-5.1#g" Makefile
+	else
+		$SED_BIN "s#-I/usr/local/include -L/usr/local/bin -llua53#-I$DEST_BIN_DIR/openresty/luajit/include/luajit-2.1 -L$DEST_BIN_DIR/openresty/luajit/lib#g" Makefile
+	fi
+	make linux
 
 	# cp -f bson.so $DEST_BIN_DIR/openresty/lualib
-	# cp -f bson.so $DEST_BIN_DIR/openresty/luajit/lib/lua/5.1
+	cp -f bson.so $DEST_BIN_DIR/openresty/luajit/lib/lua/5.1
 
 	#install luapbc
-	# echo ""
-	# echo -e "[\033[32mINSTALL\033[0m] luapbc"
+	echo ""
+	echo -e "[\033[32mINSTALL\033[0m] luapbc"
 
-	# cd $BUILD_DIR
-	# tar zxf luapbc-$LUAPBC_VER.tar.gz
-	# cd pbc
-	# make lib
-	# cd binding/lua
-	# if [ $OSTYPE == "MACOS" ]; then
-	#     $SED_BIN "s#/usr/local/include#$DEST_BIN_DIR/openresty/luajit/include/luajit-2.1 -L$DEST_BIN_DIR/openresty/luajit/lib -lluajit-5.1#g" Makefile
-	# else
-	#     $SED_BIN "s#/usr/local/include#$DEST_BIN_DIR/openresty/luajit/include/luajit-2.1#g" Makefile
-	# fi
-	# make
+	cd $BUILD_DIR
+	tar zxf luapbc-$LUAPBC_VER.tar.gz
+	cd pbc
+	make lib
+	cd binding/lua
+	if [ $OSTYPE == "MACOS" ]; then
+		$SED_BIN "s#/usr/local/include#$DEST_BIN_DIR/openresty/luajit/include/luajit-2.1 -L$DEST_BIN_DIR/openresty/luajit/lib -lluajit-5.1#g" Makefile
+	else
+		$SED_BIN "s#/usr/local/include#$DEST_BIN_DIR/openresty/luajit/include/luajit-2.1#g" Makefile
+	fi
+	make
 
 	# cp -f protobuf.so $DEST_BIN_DIR/openresty/lualib
 	# cp -f protobuf.lua $DEST_BIN_DIR/openresty/lualib
 
-	# cp -f protobuf.so $DEST_BIN_DIR/openresty/luajit/lib/lua/5.1
-	# cp -f protobuf.lua $DEST_BIN_DIR/openresty/luajit/lib/lua/5.1
+	cp -f protobuf.so $DEST_BIN_DIR/openresty/luajit/lib/lua/5.1
+	cp -f protobuf.lua $DEST_BIN_DIR/openresty/luajit/lib/lua/5.1
 
 	# install luaprocess
 	echo ""
@@ -179,11 +186,11 @@ _lualib() {
 	rm Makefile_
 
 	$SED_BIN "s#_GBC_CORE_ROOT_#$DEST_DIR#g" Makefile
-	$SED_BIN "s#lua ./codegen.lua#$DEST_BIN_DIR/openresty/luajit/bin/luajit ./codegen.lua#g" Makefile
+	# $SED_BIN "s#lua ./codegen.lua#$DEST_BIN_DIR/openresty/luajit/bin/luajit ./codegen.lua#g" Makefile
 
 	make
 
-	cp -f process.so $DEST_BIN_DIR/openresty/lualib
+	# cp -f process.so $DEST_BIN_DIR/openresty/lualib
 	cp -f process.so $DEST_BIN_DIR/openresty/luajit/lib/lua/5.1
 }
 _keydb() {
@@ -194,9 +201,9 @@ _keydb() {
 
 	cd $BUILD_DIR
 	rm -rf KeyDB
- #	if [ ! -d "KeyDB" ]; then
-		git clone https://github.com/JohnSully/KeyDB.git
-#	fi
+	#	if [ ! -d "KeyDB" ]; then
+	git clone https://github.com/JohnSully/KeyDB.git
+	#	fi
 	cd KeyDB
 	make distclean
 	git reset --hard
@@ -249,8 +256,8 @@ _beanstalk() {
 }
 _tools() {
 	mkdir -p $DEST_BIN_DIR/bin
-		curl -o $DEST_BIN_DIR/bin/jemplate https://raw.githubusercontent.com/ingydotnet/jemplate/master/jemplate
-		curl -o $DEST_BIN_DIR/bin/lemplate https://raw.githubusercontent.com/openresty/lemplate/master/lemplate
+	curl -o $DEST_BIN_DIR/bin/jemplate https://raw.githubusercontent.com/ingydotnet/jemplate/master/jemplate
+	curl -o $DEST_BIN_DIR/bin/lemplate https://raw.githubusercontent.com/openresty/lemplate/master/lemplate
 	chmod +x $DEST_BIN_DIR/bin/jemplate $DEST_BIN_DIR/bin/lemplate
 
 	echo "DONE!"
@@ -263,5 +270,9 @@ _lualib
 _redis
 _beanstalk
 _tools
-cd $SRC_DIR/build/install
-rm -rf beanstalkd-1.10.1 lua-process-1.6.0 luasocket-3.0-rc1 redis-5.0.5 supervisor-4.0.4
+# cd $SRC_DIR/build/install
+# rm -rf beanstalkd-* \
+# 	lua-process-* \
+# 	luasocket-* \
+# 	redis-* \
+# 	supervisor-*
