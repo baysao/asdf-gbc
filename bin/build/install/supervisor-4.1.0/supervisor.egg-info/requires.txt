@@ -1,5 +1,0 @@
-
-[testing]
-mock
-pytest
-pytest-cov

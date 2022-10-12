@@ -1,24 +1,29 @@
 #!/usr/bin/env bash
 _install() {
 	echo $@
+	local github_name="baysao/gbc_v2"
 	dir=$ASDF_DIR/plugins/gbc/bin
 	local install_type=$1
 	local version=$2
 	version1=$(echo $version | sed 's/^v//')
 	local install_path=$3
-	# tmpd=$(mktemp -d)
-	# cd $tmpd
-	# rm -rf $install_path/bin/openresty
-	#mkdir -p $install_path/bin
-	cd $install_path
-	# ln -snf $ASDF_DIR/installs/openresty/v1.19.3.1 openresty
-	# echo $dir/gbc.sh $dir $install_path
-	bash -x $dir/gbc.sh $dir $install_path
-	#$install_path/../../../installs/openresty/v1.19.3.1
-	#echo $install_path/lib >  /etc/ld.so.conf.d/ffmpeg.conf
-	#cp /etc/ld.so.conf.d/ffmpeg.conf $install_path/lib.conf
-	#bash -x build.sh
-	#mv /opt/ffmpeg/* $install_path/
+	tmpd=$(mktemp -d)
+	rm -f ~/.asdf/shims/python*
+	# apt install luajit libluajit-5.1-dev
+	cd $tmpd
+	#	git clone https://github.com/${github_name} gbc_v2-${version1}
+	source_path="https://github.com/${github_name}/archive/refs/tags/${version}.tar.gz"
+	# echo curl -skL $source_path -o ${version}.tar.gz
+	curl -skL $source_path -o ${version}.tar.gz
+	# echo tar -xvzf ${version}.tar.gz
+	tar -xvzf ${version}.tar.gz
+	cd gbc_v2-${version1}
+	# git pull
+	# echo bash -x gbc.sh $dir $install_path
+	bash -x gbc.sh $PWD $install_path
+	# echo cp -rf bin conf src *_server $install_path/
+	cp -rf bin conf src *_server $install_path/
+	# echo rm -rf $tmpd
 	# rm -rf $tmpd
 }
 
