@@ -9,7 +9,8 @@ _install() {
 	local install_path=$3
 	tmpd=$(mktemp -d)
 	rm -f ~/.asdf/shims/python*
-	# apt install luajit libluajit-5.1-dev
+	apt install -y luajit libluajit-5.1-dev \
+	    build-essential libpcre3-dev libssl-dev git-core unzip python make
 	cd $tmpd
 	#	git clone https://github.com/${github_name} gbc_v2-${version1}
 	source_path="https://github.com/${github_name}/archive/refs/tags/${version}.tar.gz"
