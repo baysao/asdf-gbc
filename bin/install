@@ -24,7 +24,7 @@ _install() {
 	# echo cp -rf bin conf src *_server $install_path/
 	cp -rf bin conf src *_server $install_path/
 	# echo rm -rf $tmpd
-	# rm -rf $tmpd
+	rm -rf $tmpd
 }
 
 _install $ASDF_INSTALL_TYPE $ASDF_INSTALL_VERSION $ASDF_INSTALL_PATH
